@@ -1,5 +1,7 @@
 package com.example.forums_backend.dto;
 
+import com.example.forums_backend.entity.Account;
+import com.example.forums_backend.entity.Post;
 import com.example.forums_backend.entity.my_enum.ReportStatus;
 import com.example.forums_backend.entity.my_enum.ReportType;
 import lombok.AllArgsConstructor;
@@ -12,15 +14,17 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class ReportResDto {
         private Long id;
-        private Long accountId; // Thay đổi tên trường này thành accountId
-        private Long postId;
+        private Account account;
+//        private Long accountId;
+        private Post postId;
         private ReportType reportType;
         private ReportStatus status;
         private String reason;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        // getters and setters
+
     }

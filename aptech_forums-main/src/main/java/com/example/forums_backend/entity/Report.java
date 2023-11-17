@@ -15,25 +15,24 @@ public class Report {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "account_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "account_id",nullable = false)
     private Account account;
-
-    @Column(name = "post_id")
-    private Long postId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn (name = "post_id")
+    private Post postId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "report_type")
     private ReportType reportType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status",nullable = false)
-    private ReportStatus status;
+    @Column(name = "status")
+    private ReportStatus reportStatus;
 
     private String reason;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,7 +40,7 @@ public class Report {
     private LocalDateTime updatedAt;
 
     public Report() {
-        this.status = ReportStatus.PENDING; // Đặt trạng thái mặc định là "Pending"
+        this.reportStatus = ReportStatus.PENDING; // Đặt trạng thái mặc định là "Pending"
     }
     // getters and setters
 
@@ -61,11 +60,11 @@ public class Report {
         this.account = account;
     }
 
-    public Long getPostId() {
+    public Post getPostId() {
         return postId;
     }
 
-    public void setPostId(Long postId) {
+    public void setPostId(Post postId) {
         this.postId = postId;
     }
 
@@ -77,12 +76,12 @@ public class Report {
         this.reportType = reportType;
     }
 
-    public ReportStatus getStatus() {
-        return status;
+    public ReportStatus getReportStatus() {
+        return reportStatus;
     }
 
-    public void setStatus(ReportStatus status) {
-        this.status = status;
+    public void setReportStatus(ReportStatus reportStatus) {
+        this.reportStatus = reportStatus;
     }
 
     public String getReason() {

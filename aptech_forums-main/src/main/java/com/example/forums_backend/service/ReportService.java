@@ -17,7 +17,7 @@ public interface ReportService {
     List<ReportResDto> getAllReports();
     List<ReportResDto> getResolvedReports();
     List<ReportResDto> getPendingReports();
-    void updateReport(Long reportId, ReportRequestDto reportRequestDto);
+    ReportResDto updateReport(Long reportId, ReportRequestDto reportRequestDto);
     Report getReport(Long reportId);
 
 }

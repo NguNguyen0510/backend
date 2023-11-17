@@ -1,10 +1,11 @@
 package com.example.forums_backend.service;
 
-
 import com.example.forums_backend.dto.ReportRequestDto;
 import com.example.forums_backend.dto.ReportResDto;
+import com.example.forums_backend.entity.Account;
 import com.example.forums_backend.entity.Report;
 import com.example.forums_backend.entity.my_enum.ReportStatus;
+import com.example.forums_backend.exception.ReportNotFoundException;
 import com.example.forums_backend.repository.ReportRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
@@ -17,23 +18,47 @@ import java.util.List;
 
 @Service
 public class ReportServiceImpl implements ReportService {
+    private ModelMapper modelMapper = new ModelMapper();
 
     @Autowired
     private ReportRepository reportRepository;
 
     @Override
     public Report createReport(ReportRequestDto reportRequestDto) {
-        // Tạo mới đối tượng ReportEntity với trạng thái mặc định là "Pending"
-        Report reportEntity = new Report();
-        // Các bước khác để thiết lập thông tin từ reportRequestDto
+        System.out.println("Debug - reportRequestDto: " + reportRequestDto.toString());
 
-        return reportRepository.save(reportEntity); // Lưu vào cơ sở dữ liệu
+        // Verify that the account ID is not null
+        if (reportRequestDto.getAccount() == null) {
+            throw new IllegalArgumentException("Account ID cannot be null");
+        }
+
+        Report reportEntity = convertToEntity(reportRequestDto);
+
+        // Verify that the Account in the Report entity is not null
+        if (reportEntity.getAccount() == null) {
+            throw new IllegalArgumentException("Account in Report entity cannot be null");
+        }
+
+        return reportRepository.save(reportEntity);
     }
+
+
 
     private Report convertToEntity(ReportRequestDto reportRequestDto) {
         ModelMapper modelMapper = new ModelMapper();
+
+        // Custom converter for mapping account_id to Account entity
+        modelMapper.addConverter(ctx -> {
+            Long accountId = (Long) ctx.getSource();
+            Account account = new Account();
+            account.setId(accountId);
+            return account;
+        }, Long.class, Account.class);
+
         return modelMapper.map(reportRequestDto, Report.class);
     }
+
+
 
     @Override
     public void deleteReport(Long reportId) {
@@ -45,57 +70,106 @@ public class ReportServiceImpl implements ReportService {
         List<Report> reportEntities = reportRepository.findAll();
         List<ReportResDto> reportDTOs = new ArrayList<>();
 
+        ModelMapper modelMapper = new ModelMapper();
+
+
         for (Report reportEntity : reportEntities) {
-            ReportResDto reportDTO = new ReportResDto();
-            BeanUtils.copyProperties(reportEntity, reportDTO);
+            ReportResDto reportDTO = modelMapper.map(reportEntity, ReportResDto.class);
             reportDTOs.add(reportDTO);
         }
 
         return reportDTOs;
     }
+
+
     @Override
     public List<ReportResDto> getResolvedReports() {
-        List<Report> resolvedReports = reportRepository.findByStatus(ReportStatus.RESOLVED);
-        List<ReportResDto> resolvedReportDTOs = new ArrayList<>();
+        try {
+            List<Report> resolvedReports = reportRepository.findByReportStatus(ReportStatus.RESOLVED);
 
-        for (Report reportEntity : resolvedReports) {
-            ReportResDto reportDTO = new ReportResDto();
-            BeanUtils.copyProperties(reportEntity, reportDTO);
-            resolvedReportDTOs.add(reportDTO);
+            if (resolvedReports.isEmpty()) {
+                throw new ReportNotFoundException("No resolved reports found");
+            }
+
+            List<ReportResDto> resolvedReportDTOs = new ArrayList<>();
+            for (Report reportEntity : resolvedReports) {
+                ReportResDto reportDTO = new ReportResDto();
+                BeanUtils.copyProperties(reportEntity, reportDTO);
+                resolvedReportDTOs.add(reportDTO);
+            }
+
+            return resolvedReportDTOs;
+        } catch (Exception exception) {
+            // Ném lại ReportNotFoundException với thông báo lỗi
+            throw new ReportNotFoundException("Error while fetching resolved reports: " + exception.getMessage());
         }
-
-        return resolvedReportDTOs;
     }
     @Override
     public List<ReportResDto> getPendingReports() {
-        List<Report> pendingReports = reportRepository.findByStatus(ReportStatus.PENDING);
-        List<ReportResDto> pendingReportDTOs = new ArrayList<>();
+        try {
+            List<Report> pendingReports = reportRepository.findByReportStatus(ReportStatus.PENDING);
 
-        for (Report reportEntity : pendingReports) {
-            ReportResDto reportDTO = new ReportResDto();
-            BeanUtils.copyProperties(reportEntity, reportDTO);
-            pendingReportDTOs.add(reportDTO);
+            if (pendingReports.isEmpty()) {
+                throw new ReportNotFoundException("No pending reports found");
+            }
+
+            List<ReportResDto> pendingReportDTOs = new ArrayList<>();
+            for (Report reportEntity : pendingReports) {
+                ReportResDto reportDTO = new ReportResDto();
+                BeanUtils.copyProperties(reportEntity, reportDTO);
+                pendingReportDTOs.add(reportDTO);
+            }
+
+            return pendingReportDTOs;
+        } catch (Exception exception) {
+            // Ném lại ReportNotFoundException với thông báo lỗi
+            throw new ReportNotFoundException("Error while fetching pending reports: " + exception.getMessage());
         }
-
-        return pendingReportDTOs;
     }
+
     @Override
-    public void updateReport(Long reportId, ReportRequestDto reportRequestDto) {
+    public ReportResDto updateReport(Long reportId, ReportRequestDto reportRequestDto) {
         // Kiểm tra xem report có tồn tại không
         Report existingReport = reportRepository.findById(reportId)
-                .orElseThrow(() -> new EntityNotFoundException("Report not found"));
+                .orElseThrow(() -> new ReportNotFoundException("Report not found"));
 
         // Cập nhật thông tin từ reportRequestDto vào existingReport
         existingReport.setReportType(reportRequestDto.getReportType());
         existingReport.setReason(reportRequestDto.getReason());
+        existingReport.setReportStatus(reportRequestDto.getReportStatus());
 
         // Lưu cập nhật vào repository
-        reportRepository.save(existingReport);
+        Report updatedReport = reportRepository.save(existingReport);
+
+        // Chuyển đổi từ entity đã cập nhật thành đối tượng DTO và trả về
+        return convertToDto(updatedReport);
     }
+
+
+
+
+
+    private ReportResDto convertToDto(Report reportEntity) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(reportEntity, ReportResDto.class);
+    }
+
     @Override
     public Report getReport(Long reportId) {
         // Thực hiện lấy report từ repository
         return reportRepository.findById(reportId)
                 .orElseThrow(() -> new EntityNotFoundException("Report not found"));
     }
+//    private ReportResDto convertToDto(Report reportEntity) {
+//
+//        ReportResDto reportDTO = modelMapper.map(reportEntity, ReportResDto.class);
+//
+//        // Thêm ánh xạ cho trường account
+//        if (reportEntity.getAccount() != null) {
+//            reportDTO.setAccountId(reportEntity.getAccount().getId());
+//        }
+//
+//        return reportDTO;
+//    }
+
 }

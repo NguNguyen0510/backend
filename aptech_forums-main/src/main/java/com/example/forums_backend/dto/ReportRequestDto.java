@@ -1,5 +1,6 @@
 package com.example.forums_backend.dto;
 
+import com.example.forums_backend.entity.my_enum.ReportStatus;
 import com.example.forums_backend.entity.my_enum.ReportType;
 
 //
@@ -24,9 +25,14 @@ import com.example.forums_backend.entity.my_enum.ReportType;
 // dto/ReportRequestDto.java
 public class ReportRequestDto {
     private Long postId;
-    private Long accountId;
+    private Long account;
     private ReportType reportType;
     private String reason;
+    private ReportStatus reportStatus;
+    public ReportRequestDto() {
+        // Set giá trị mặc định cho reportStatus là PENDING khi tạo đối tượng
+        this.reportStatus = ReportStatus.PENDING;
+    }
 
     // Getters and setters
     public ReportType getReportType() {
@@ -36,11 +42,33 @@ public class ReportRequestDto {
     public void setReportType(ReportType reportType) {
         this.reportType = reportType;
     }
+    public ReportStatus getReportStatus() {
+        return reportStatus;
+    }
+
+    public void setReportStatus(ReportStatus reportStatus) {
+        this.reportStatus = reportStatus;
+    }
     public String getReason() {
         return reason;
     }
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+    public Long getPostId() {
+        return postId;
+    }
+
+    public void setPostId(Long postId) {
+        this.postId = postId;
+    }
+
+    public Long getAccount() {
+        return account;
+    }
+
+    public void setAccount(Long account) {
+        this.account = account;
     }
 }

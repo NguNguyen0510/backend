@@ -28,10 +28,11 @@ public class ReportController {
 //    }
 
     @DeleteMapping("/{reportId}")
-    public ResponseEntity<Void> deleteReport(@PathVariable Long reportId) {
+    public ResponseEntity<String> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("Report deleted successfully", HttpStatus.OK);
     }
+
 
     @GetMapping
     public ResponseEntity<List<ReportResDto>> getAllReports() {
@@ -41,8 +42,9 @@ public class ReportController {
     }
     @GetMapping("/resolved")
     public ResponseEntity<List<ReportResDto>> getResolvedReports() {
-        List<ReportResDto> resolvedReports = reportService.getResolvedReports();
-        return new ResponseEntity<>(resolvedReports, HttpStatus.OK);
+        List<ReportResDto> reportResDtos = reportService.getResolvedReports();
+        List<ReportResDto> responseDtos = convertToDtoList(reportResDtos);
+        return new ResponseEntity<>(responseDtos, HttpStatus.OK);
     }
     @GetMapping("/pending")
     public ResponseEntity<List<ReportResDto>> getPendingReports() {
@@ -52,11 +54,17 @@ public class ReportController {
     }
     @PostMapping("/create")
     public ResponseEntity<String> createReport(@RequestBody ReportRequestDto reportRequestDto) {
-
-        // Xử lý yêu cầu tạo mới báo cáo ở đây
-        // reportService.createReport(reportRequestDto);
+        System.out.println("Debug - createReport - reportRequestDto: " + reportRequestDto.toString());
+        reportService.createReport(reportRequestDto);
         return new ResponseEntity<>("Report created successfully", HttpStatus.CREATED);
     }
+    @PutMapping("/{reportId}")
+    public ResponseEntity<ReportResDto> updateReport(@PathVariable Long reportId,
+                                                     @RequestBody ReportRequestDto reportRequestDto) {
+        ReportResDto updatedReport = reportService.updateReport(reportId, reportRequestDto);
+        return new ResponseEntity<>(updatedReport, HttpStatus.OK);
+    }
+
     @GetMapping("/{reportId}")
     public ResponseEntity<ReportResDto> getReport(@PathVariable Long reportId) {
         Report reportEntity = reportService.getReport(reportId);
@@ -70,6 +78,7 @@ public class ReportController {
         responseDto.setId(reportEntity.getId());
         responseDto.setReportType(reportEntity.getReportType());
         responseDto.setReason(reportEntity.getReason());
+        responseDto.setAccount(reportEntity.getAccount());
         // Các trường khác...
 
         return responseDto;
