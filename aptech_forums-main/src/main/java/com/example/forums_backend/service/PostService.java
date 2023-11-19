@@ -1,14 +1,14 @@
 package com.example.forums_backend.service;
 
+import com.example.forums_backend.dto.PostRequestDto;
 import com.example.forums_backend.dto.PostResDto;
 import com.example.forums_backend.entity.*;
-import com.example.forums_backend.dto.PostRequestDto;
 import com.example.forums_backend.entity.my_enum.SortPost;
 import com.example.forums_backend.entity.my_enum.StatusEnum;
 import com.example.forums_backend.entity.my_enum.VoteType;
 import com.example.forums_backend.exception.AppException;
-import com.example.forums_backend.repository.PostRepository;
 import com.example.forums_backend.repository.BookmarkRepository;
+import com.example.forums_backend.repository.PostRepository;
 import com.example.forums_backend.repository.PostViewRepository;
 import com.example.forums_backend.repository.VoteRepository;
 import com.example.forums_backend.utils.SlugGenerating;
@@ -20,7 +20,10 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -266,4 +269,34 @@ public class PostService {
             postViewRepository.save(postViewSave);
         }
     }
+
+        // Các trường và dependency injection tương tự như trước
+
+        public PostResDto updatePostByAdmin(Long postId, PostRequestDto postRequestDto) throws AppException {
+            // Kiểm tra xem bài đăng có tồn tại không
+            Optional<Post> postOptional = postRepository.findById(postId);
+            if (!postOptional.isPresent()) {
+                throw new AppException("POST NOT FOUND!");
+            }
+
+            // Lấy thông tin người dùng hiện tại (admin)
+            Account admin = accountService.getUserInfoData();
+
+            // Cập nhật thông tin bài đăng
+            Post existingPost = postOptional.get();
+            existingPost.setTitle(postRequestDto.getTitle());
+            existingPost.setContent(postRequestDto.getContent());
+
+            // Xử lý và cập nhật các tag
+//            Set<Tag> updatedTags = tagService.processTags(postRequestDto.getTags());
+//            existingPost.setTags(updatedTags);
+
+            // Lưu bài đăng đã được cập nhật vào cơ sở dữ liệu
+            Post updatedPost = postRepository.save(existingPost);
+
+            // Chuyển đổi thành DTO để trả về cho người dùng
+            return fromEntityPostDto(updatedPost, admin);
+        }
+
+
 }
