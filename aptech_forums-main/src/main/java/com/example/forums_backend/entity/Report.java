@@ -16,7 +16,7 @@ public class Report {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id",nullable = false)
+    @JoinColumn(name = "account_id",nullable = true)
     private Account account;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn (name = "post_id")
@@ -31,6 +31,7 @@ public class Report {
     private ReportStatus reportStatus;
 
     private String reason;
+    private String username;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -90,6 +91,12 @@ public class Report {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getUsername() {
+        return username;
     }
 
     public LocalDateTime getCreated_At() {

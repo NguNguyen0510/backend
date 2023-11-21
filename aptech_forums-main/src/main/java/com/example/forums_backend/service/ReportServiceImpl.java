@@ -27,22 +27,15 @@ public class ReportServiceImpl implements ReportService {
     public Report createReport(ReportRequestDto reportRequestDto) {
         System.out.println("Debug - reportRequestDto: " + reportRequestDto.toString());
 
-        // Verify that the account ID is not null
-        if (reportRequestDto.getAccount() == null) {
-            throw new IllegalArgumentException("Account ID cannot be null");
-        }
-
         Report reportEntity = convertToEntity(reportRequestDto);
 
-        // Verify that the Account in the Report entity is not null
-        if (reportEntity.getAccount() == null) {
-            throw new IllegalArgumentException("Account in Report entity cannot be null");
-        }
+        // Verify that the Account in the Report entity is not null if needed
+//        if (reportEntity.getAccount() == null) {
+//            throw new IllegalArgumentException("Account in Report entity cannot be null");
+//        }
 
         return reportRepository.save(reportEntity);
     }
-
-
 
     private Report convertToEntity(ReportRequestDto reportRequestDto) {
         ModelMapper modelMapper = new ModelMapper();
@@ -50,13 +43,18 @@ public class ReportServiceImpl implements ReportService {
         // Custom converter for mapping account_id to Account entity
         modelMapper.addConverter(ctx -> {
             Long accountId = (Long) ctx.getSource();
-            Account account = new Account();
-            account.setId(accountId);
-            return account;
+            if (accountId != null) {
+                Account account = new Account();
+                account.setId(accountId);
+                return account;
+            } else {
+                return null; // Handle the case when account_id is null
+            }
         }, Long.class, Account.class);
 
         return modelMapper.map(reportRequestDto, Report.class);
     }
+
 
 
 

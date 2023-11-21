@@ -28,6 +28,7 @@ public class ReportRequestDto {
     private Long account;
     private ReportType reportType;
     private String reason;
+    private String username;
     private ReportStatus reportStatus;
     public ReportRequestDto() {
         // Set giá trị mặc định cho reportStatus là PENDING khi tạo đối tượng
@@ -56,6 +57,13 @@ public class ReportRequestDto {
     public void setReason(String reason) {
         this.reason = reason;
     }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getUsername() {
+        return username;
+    }
+
     public Long getPostId() {
         return postId;
     }

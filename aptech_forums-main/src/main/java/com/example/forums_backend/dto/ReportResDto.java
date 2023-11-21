@@ -23,6 +23,7 @@ public class ReportResDto {
         private ReportType reportType;
         private ReportStatus status;
         private String reason;
+        private String username;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
